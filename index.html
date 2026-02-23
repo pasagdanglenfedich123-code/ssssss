@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍕 Pizza Scratch & Win 🍕</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #FF6B35 0%, #D62828 50%, #F77F00 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .game-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            animation: fadeIn 0.6s ease-in;
+        }
+
+        .game-header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+            animation: bounce 0.6s ease-in-out;
+        }
+
+        .game-header p {
+            font-size: 1.2rem;
+            opacity: 0.95;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* Game Area */
+        .game-area {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.4);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        .scratch-container {
+            position: relative;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .scratch-card {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border-radius: 15px;
+            overflow: hidden;
+            touch-action: none;
+            cursor: pointer;
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 300px;
+            border: 4px solid #FF6B35;
+            box-shadow: 0 8px 20px rgba(255, 107, 53, 0.3);
+        }
+
+        .scratch-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            touch-action: none;
+        }
+
+        .scratch-text {
+            position: absolute;
+            font-size: 1.3rem;
+            color: rgba(0,0,0,0.3);
+            text-align: center;
+            pointer-events: none;
+            font-weight: bold;
+            z-index: 1;
+            line-height: 1.4;
+        }
+
+        .hidden-prize {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            background: white;
+            z-index: 0;
+        }
+
+        .hidden-prize.winner {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #D62828;
+        }
+
+        .hidden-prize.loser {
+            background: linear-gradient(135deg, #FF6B35 0%, #D62828 100%);
+            color: white;
+        }
+
+        /* Result Screen */
+        .result-screen {
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.6s ease-in;
+        }
+
+        .result-screen.show {
+            display: block;
+        }
+
+        .result-screen.winner {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #D62828;
+            padding: 40px 20px;
+            border-radius: 20px;
+            border: 4px solid #FF6B35;
+        }
+
+        .result-screen.loser {
+            background: linear-gradient(135deg, #FF6B35 0%, #D62828 100%);
+            color: white;
+            padding: 40px 20px;
+            border-radius: 20px;
+            border: 4px solid #FFD700;
+        }
+
+        .result-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            animation: bounce 0.6s ease-in-out;
+        }
+
+        .result-title {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .result-message {
+            font-size: 1.2rem;
+            margin-bottom: 25px;
+            font-weight: 500;
+        }
+
+        .claim-code {
+            background: rgba(255,255,255,0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 1.4rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            word-break: break-all;
+            border: 2px dashed rgba(0,0,0,0.2);
+        }
+
+        .claim-info {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #D62828;
+            border: 2px solid #D62828;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            background: #FFD700;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: inherit;
+            border: 2px solid white;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.4);
+            transform: translateY(-2px);
+        }
+
+        .instruction {
+            text-align: center;
+            color: #666;
+            margin-top: 15px;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .already-played {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #FF6B35 0%, #D62828 100%);
+            color: white;
+            border-radius: 15px;
+            border: 4px solid #FFD700;
+        }
+
+        .already-played h2 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .already-played p {
+            font-size: 1.05rem;
+            margin-bottom: 20px;
+        }
+
+        .timer {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 20px 0;
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .pizza-emoji {
+            animation: rotate 3s linear infinite;
+            display: inline-block;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.15);
+            }
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 480px) {
+            .game-header h1 {
+                font-size: 2.2rem;
+            }
+
+            .game-header p {
+                font-size: 1rem;
+            }
+
+            .game-area {
+                padding: 20px;
+            }
+
+            .scratch-card {
+                min-height: 250px;
+            }
+
+            .result-title {
+                font-size: 2rem;
+            }
+
+            .result-icon {
+                font-size: 4rem;
+            }
+
+            .claim-code {
+                font-size: 1.1rem;
+            }
+
+            .btn {
+                padding: 10px 18px;
+                font-size: 0.9rem;
+            }
+
+            .already-played h2 {
+                font-size: 1.5rem;
+            }
+
+            .timer {
+                font-size: 1.2rem;
+            }
+        }
+
+        /* Accessibility */
+        .btn:focus {
+            outline: 3px solid #FFD700;
+            outline-offset: 2px;
+        }
+
+        canvas:focus {
+            outline: 3px solid #FF6B35;
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Game Header -->
+        <div class="game-header">
+            <h1><span class="pizza-emoji">🍕</span> Pizza Scratch & Win <span class="pizza-emoji">🍕</span></h1>
+            <p>Chance to win exciting prizes!</p>
+        </div>
+
+        <!-- Main Game Area -->
+        <div class="game-area">
+            <!-- Scratch Card Section -->
+            <div id="gameSection" class="scratch-container">
+                <div class="scratch-card" id="scratchCard">
+                    <div class="scratch-text">✨ Scratch here! ✨<br>to win exciting prizes!</div>
+                    <div class="hidden-prize" id="hiddenPrize">
+                        <span id="prizeText">🍕</span>
+                    </div>
+                    <canvas id="scratchCanvas" class="scratch-canvas"></canvas>
+                </div>
+                <div class="instruction">Use your finger or mouse to scratch off the golden area</div>
+            </div>
+
+            <!-- Result Screen Section -->
+            <div id="resultScreen" class="result-screen">
+                <div class="result-icon" id="resultIcon">🎉</div>
+                <div class="result-title" id="resultTitle">Winner!</div>
+                <div class="result-message" id="resultMessage">Congratulations!</div>
+                <div id="claimCodeSection">
+                    <div class="claim-info">Your unique pizza claim code:</div>
+                    <div class="claim-code" id="claimCode">XXXX-XXXX-XXXX</div>
+                    <div class="claim-info" style="margin-top: 10px;">Show this at your nearest pizza shop!</div>
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="shareResult()">📱 Share with Friends</button>
+                </div>
+            </div>
+
+            <!-- Already Played Section -->
+            <div id="alreadyPlayedSection" class="already-played" style="display: none;">
+                <h2>🍕 Already Scratched Today! 🍕</h2>
+                <p>You've already claimed your pizza scratch card today. Come back tomorrow for another chance!</p>
+                <div class="timer" id="timerDisplay"></div>
+                <button class="btn btn-secondary" onclick="resetLocalStorage()">🔄 Reset (Dev)</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const WIN_PROBABILITY = 0.20; // 20% chance to win
+        const RESET_TIME_HOURS = 24; // Reset after 24 hours
+        const SCRATCH_THRESHOLD = 0.4; // 40% of card needs to be scratched
+
+        // State
+        let canvas, ctx;
+        let isDrawing = false;
+        let scratchedArea = 0;
+        let gameState = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeGame();
+        });
+
+        function initializeGame() {
+            canvas = document.getElementById('scratchCanvas');
+            ctx = canvas.getContext('2d');
+
+            // Set canvas size
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+
+            // Draw scratch-off overlay
+            drawScratchOverlay();
+
+            // Load game state
+            loadGameState();
+
+            // Setup event listeners
+            setupEventListeners();
+        }
+
+        function drawScratchOverlay() {
+            // Pizza-themed gradient (golden/orange)
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#FFD700');
+            gradient.addColorStop(0.5, '#FFA500');
+            gradient.addColorStop(1, '#FF8C00');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Add pizza-themed pattern
+            ctx.fillStyle = 'rgba(255, 107, 53, 0.15)';
+            for (let i = 0; i < canvas.width; i += 6) {
+                for (let j = 0; j < canvas.height; j += 6) {
+                    if ((i + j) % 12 === 0) {
+                        ctx.fillRect(i, j, 3, 3);
+                    }
+                }
+            }
+
+            // Add pizza slice visual hints
+            ctx.strokeStyle = 'rgba(255, 107, 53, 0.1)';
+            ctx.lineWidth = 2;
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(canvas.width, canvas.height) * 0.3;
+            
+            for (let i = 0; i < 8; i++) {
+                const angle = (i * Math.PI) / 4;
+                const x = centerX + Math.cos(angle) * radius;
+                const y = centerY + Math.sin(angle) * radius;
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+            }
+        }
+
+        function setupEventListeners() {
+            const canvas = document.getElementById('scratchCanvas');
+
+            // Mouse events
+            canvas.addEventListener('mousedown', startScratching);
+            canvas.addEventListener('mousemove', scratch);
+            canvas.addEventListener('mouseup', stopScratching);
+            canvas.addEventListener('mouseout', stopScratching);
+
+            // Touch events
+            canvas.addEventListener('touchstart', handleTouchStart);
+            canvas.addEventListener('touchmove', handleTouchMove);
+            canvas.addEventListener('touchend', stopScratching);
+        }
+
+        function startScratching(e) {
+            if (gameState && gameState.played) return;
+            isDrawing = true;
+            scratch(e);
+        }
+
+        function stopScratching() {
+            isDrawing = false;
+        }
+
+        function scratch(e) {
+            if (!isDrawing || (gameState && gameState.played)) return;
+
+            const rect = canvas.getBoundingClientRect();
+            let x, y;
+
+            if (e.touches) {
+                x = e.touches[0].clientX - rect.left;
+                y = e.touches[0].clientY - rect.top;
+            } else {
+                x = e.clientX - rect.left;
+                y = e.clientY - rect.top;
+            }
+
+            // Scratch off the overlay with larger radius for mobile
+            const radius = 40;
+            ctx.clearRect(x - radius, y - radius, radius * 2, radius * 2);
+
+            // Calculate scratched area percentage
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            let transparent = 0;
+
+            for (let i = 3; i < data.length; i += 4) {
+                if (data[i] < 128) {
+                    transparent++;
+                }
+            }
+
+            scratchedArea = transparent / (data.length / 4);
+
+            // Check if enough scratched
+            if (scratchedArea > SCRATCH_THRESHOLD) {
+                finishGame();
+            }
+        }
+
+        function handleTouchStart(e) {
+            e.preventDefault();
+            startScratching(e);
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+            scratch(e);
+        }
+
+        function finishGame() {
+            isDrawing = false;
+
+            // Determine win/loss
+            const isWinner = Math.random() < WIN_PROBABILITY;
+
+            // Generate claim code
+            const claimCode = generateClaimCode();
+
+            // Save game state
+            gameState = {
+                played: true,
+                isWinner: isWinner,
+                claimCode: claimCode,
+                timestamp: Date.now()
+            };
+
+            localStorage.setItem('pizzaScratchGameState', JSON.stringify(gameState));
+
+            // Show result
+            showResult(isWinner, claimCode);
+        }
+
+        function generateClaimCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = '';
+            for (let i = 0; i < 12; i++) {
+                if (i === 4 || i === 8) {
+                    code += '-';
+                } else {
+                    code += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+            }
+            return code;
+        }
+
+        function showResult(isWinner, claimCode) {
+            const gameSection = document.getElementById('gameSection');
+            const resultScreen = document.getElementById('resultScreen');
+            const resultIcon = document.getElementById('resultIcon');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultMessage = document.getElementById('resultMessage');
+            const claimCodeElement = document.getElementById('claimCode');
+            const claimCodeSection = document.getElementById('claimCodeSection');
+
+            gameSection.style.display = 'none';
+            resultScreen.classList.add('show');
+
+            if (isWinner) {
+                resultScreen.classList.remove('loser');
+                resultScreen.classList.add('winner');       
+                resultIcon.textContent = '🎉';
+                resultTitle.textContent = 'You Won! 🍕';
+                resultMessage.textContent = 'Congratulations! Claim your delicious reward!';
+                claimCodeElement.textContent = claimCode;
+                claimCodeSection.style.display = 'block';
+            } else {
+                resultScreen.classList.remove('winner');
+                resultScreen.classList.add('loser');
+                resultIcon.textContent = '😋';
+                resultTitle.textContent = 'Better Luck Tomorrow!';
+                resultMessage.textContent = 'Don\'t worry, try again tomorrow for another chance to win exciting prizes!';
+                claimCodeSection.style.display = 'none';
+            }
+        }
+
+        function resetGame() {
+            localStorage.removeItem('pizzaScratchGameState');
+            location.reload();
+        }
+
+        function shareResult() {
+            const text = gameState.isWinner 
+                ? `🍕 I won exciting prizes! My claim code: ${gameState.claimCode} 🍕 Try Pizza Scratch & Win now!` 
+                : `😋 I played Pizza Scratch & Win! Better luck next time! 🍕`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: '🍕 Pizza Scratch & Win',
+                    text: text,
+                    url: window.location.href
+                });
+            } else {
+                alert(text);
+            }
+        }
+
+        function loadGameState() {
+            const saved = localStorage.getItem('pizzaScratchGameState');
+            
+            if (saved) {
+                gameState = JSON.parse(saved);
+                const now = Date.now();
+                const resetTime = RESET_TIME_HOURS * 60 * 60 * 1000;
+
+                if (now - gameState.timestamp < resetTime) {
+                    // Still in cooldown
+                    showAlreadyPlayed(gameState.timestamp);
+                    return;
+                } else {
+                    // Reset period passed
+                    localStorage.removeItem('pizzaScratchGameState');
+                    gameState = null;
+                }
+            }
+
+            // Fresh game
+            gameState = null;
+            document.getElementById('gameSection').style.display = 'block';
+            document.getElementById('resultScreen').classList.remove('show');
+            document.getElementById('alreadyPlayedSection').style.display = 'none';
+        }
+
+        function showAlreadyPlayed(timestamp) {
+            document.getElementById('gameSection').style.display = 'none';
+            document.getElementById('resultScreen').classList.remove('show');
+            document.getElementById('alreadyPlayedSection').style.display = 'block';
+
+            // Calculate time remaining
+            updateTimer(timestamp);
+            setInterval(() => updateTimer(timestamp), 1000);
+        }
+
+        function updateTimer(timestamp) {
+            const now = Date.now();
+            const resetTime = RESET_TIME_HOURS * 60 * 60 * 1000;
+            const remaining = resetTime - (now - timestamp);
+
+            if (remaining <= 0) {
+                localStorage.removeItem('pizzaScratchGameState');
+                location.reload();
+                return;
+            }
+
+            const hours = Math.floor(remaining / (60 * 60 * 1000));
+            const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+            const seconds = Math.floor((remaining % (60 * 1000)) / 1000);
+
+            document.getElementById('timerDisplay').textContent = 
+                `⏱️ Come back in: ${hours}h ${minutes}m ${seconds}s`;
+        }
+
+        function resetLocalStorage() {
+            if (confirm('Are you sure? This will clear all game data.')) {
+                localStorage.removeItem('pizzaScratchGameState');
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
